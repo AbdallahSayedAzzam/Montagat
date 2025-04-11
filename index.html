@@ -320,7 +320,8 @@
         
         input[type="text"],
         input[type="tel"],
-        input[type="number"] {
+        input[type="number"],
+        textarea {
             width: 100%;
             padding: 15px 20px;
             border: 2px solid rgba(108, 92, 231, 0.2);
@@ -334,12 +335,18 @@
         
         input[type="text"]:focus,
         input[type="tel"]:focus,
-        input[type="number"]:focus {
+        input[type="number"]:focus,
+        textarea:focus {
             border-color: var(--primary-color);
             box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.1);
             outline: none;
             background: white;
             transform: translateY(-2px);
+        }
+        
+        textarea {
+            min-height: 120px;
+            resize: vertical;
         }
         
         .submit-btn {
@@ -448,6 +455,37 @@
             height: auto;
             padding: 20px 15px;
             margin-top: 15px;
+        }
+
+        .success-message {
+            text-align: center;
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(0, 184, 148, 0.1);
+            border-radius: 12px;
+            color: var(--dark-color);
+            font-weight: 700;
+            font-size: 1.1rem;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .success-message i {
+            font-size: 3rem;
+            color: var(--success-color);
+            margin-bottom: 15px;
+        }
+
+        .success-message p {
+            margin: 5px 0;
+        }
+
+        .success-title {
+            color: var(--success-color);
+            font-size: 1.3rem;
+            margin-bottom: 10px;
         }
         
         .loader {
@@ -561,10 +599,15 @@
             
             input[type="text"],
             input[type="tel"],
-            input[type="number"] {
+            input[type="number"],
+            textarea {
                 padding: 18px 25px;
                 font-size: 1.1rem;
                 border-radius: 15px;
+            }
+            
+            textarea {
+                min-height: 150px;
             }
             
             .submit-btn {
@@ -580,11 +623,23 @@
                 top: -50px;
                 right: -50px;
             }
+
+            .success-message {
+                padding: 30px;
+                font-size: 1.2rem;
+            }
+
+            .success-message i {
+                font-size: 4rem;
+            }
+
+            .success-title {
+                font-size: 1.5rem;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- باقي الكود كما هو بدون تغيير -->
     <div class="container">
         <div class="header-circle"></div>
         
@@ -600,7 +655,7 @@
                     <input type="file" id="mainImage" accept="image/*" required>
                 </button>
                 <button class="upload-btn">
-                    <i class="fas fa-images"></i> صور إضافية (3 كحد أقصى)
+                    <i class="fas fa-images"></i>يمكنك رفع (3) صور إضافية
                     <input type="file" id="additionalImages" accept="image/*" multiple>
                 </button>
             </div>
@@ -619,8 +674,8 @@
                 </div>
                 <div class="form-col">
                     <div class="form-group">
-                        <label for="merchantPhone" class="required">رقم هاتف التاجر</label>
-                        <input type="tel" id="merchantPhone" required placeholder="01XXXXXXXXX" maxlength="11">
+                        <label for="merchantPhone" class="required">رقم الهاتف</label>
+                        <input type="tel" id="merchantPhone" required placeholder="" maxlength="11">
                         <div class="error-message" id="merchantPhoneError">يجب إدخال رقم هاتف صحيح مكون من 11 رقم ويبدأ بـ 01</div>
                     </div>
                 </div>
@@ -658,6 +713,11 @@
                     </div>
                 </div>
             </div>
+
+            <div class="form-group">
+                <label for="productDescription">وصف المنتج</label>
+                <textarea id="productDescription" placeholder="أدخل وصف للمنتج مثل نوع المنتج و مميزاته وهكذا"></textarea>
+            </div>
             
             <button type="submit" class="submit-btn" id="submitBtn" disabled>
                 <i class="fas fa-paper-plane"></i> إرسال المنتج
@@ -665,7 +725,13 @@
             
             <div class="waiting-message" id="waitingMessage">
                 <div class="loader"></div>
-                <p>برجاء الانتظار جاري إرسال البيانات...</p>
+                <p>برجاء الإنتظار...</p>
+            </div>
+
+            <div class="success-message" id="successMessage">
+                <i class="fas fa-check-circle"></i>
+                <p class="success-title">تم إرسال البيانات بنجاح!</p>
+                <p>سيتم مراجعة المنتج من قبل SATA ورفعة في المتجر الالكتروني في خلال 1-5 ساعات</p>
             </div>
         </form>
     </div>
@@ -680,6 +746,7 @@
             const productForm = document.getElementById('productForm');
             const submitBtn = document.getElementById('submitBtn');
             const waitingMessage = document.getElementById('waitingMessage');
+            const successMessage = document.getElementById('successMessage');
             
             // Variables to store images
             let mainImage = null;
@@ -854,6 +921,7 @@
                 
                 // Show waiting message
                 waitingMessage.classList.add('active');
+                successMessage.style.display = 'none';
                 
                 // Get current date and time
                 const now = new Date();
@@ -884,6 +952,7 @@
                     formData.append('productPrice', document.getElementById('productPrice').value);
                     formData.append('productQuantity', document.getElementById('productQuantity').value);
                     formData.append('productWeight', document.getElementById('productWeight').value || 'غير محدد');
+                    formData.append('productDescription', document.getElementById('productDescription').value || 'لا يوجد وصف');
                     formData.append('submissionDate', date);
                     formData.append('submissionTime', time);
                     
@@ -912,6 +981,9 @@
                         💵 *السعر:* ${formData.get('productPrice')} 
                         📦 *الكمية:* ${formData.get('productQuantity')}
                         ⚖️ *الوزن:* ${formData.get('productWeight')}
+                        
+                        📝 *وصف المنتج:*
+                        ${formData.get('productDescription')}
                         
                         📅 *تاريخ الإرسال:* ${formData.get('submissionDate')}
                         🕒 *وقت الإرسال:* ${formData.get('submissionTime')}
@@ -956,33 +1028,21 @@
                         });
                     }
                     
-                    // Show success message
-                    waitingMessage.innerHTML = `
-                        <i class="fas fa-check-circle" style="font-size: 3rem; color: var(--success-color); margin-bottom: 15px;"></i>
-                        <p style="font-size: 1.3rem; font-weight: bold; color: var(--success-color);">تم إرسال البيانات بنجاح!</p>
-                        <p>سيتم مراجعة المنتج من قبل المسؤول</p>
-                    `;
+                    // Hide waiting message and show success message
+                    waitingMessage.classList.remove('active');
+                    successMessage.style.display = 'flex';
                     
-                    setTimeout(() => {
-                        // Reset form
-                        productForm.reset();
-                        imagePreview.innerHTML = '';
-                        mainImage = null;
-                        additionalImages = [];
-                        totalImages = 0;
-                        updateImageCount();
-                        
-                        // Reset waiting message
-                        waitingMessage.classList.remove('active');
-                        waitingMessage.innerHTML = `
-                            <div class="loader"></div>
-                            <p>برجاء الانتظار جاري إرسال البيانات...</p>
-                        `;
-                        
-                        // Re-enable submit button
-                        submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> إرسال المنتج';
-                        checkFormValidity();
-                    }, 3000);
+                    // Reset form
+                    productForm.reset();
+                    imagePreview.innerHTML = '';
+                    mainImage = null;
+                    additionalImages = [];
+                    totalImages = 0;
+                    updateImageCount();
+                    
+                    // Re-enable submit button
+                    submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> إرسال المنتج';
+                    checkFormValidity();
                     
                 } catch (error) {
                     console.error('Error submitting form:', error);
@@ -999,7 +1059,7 @@
                         waitingMessage.classList.remove('active');
                         waitingMessage.innerHTML = `
                             <div class="loader"></div>
-                            <p>برجاء الانتظار جاري إرسال البيانات...</p>
+                            <p>برجاء الانتظار...</p>
                         `;
                         
                         // Re-enable submit button
